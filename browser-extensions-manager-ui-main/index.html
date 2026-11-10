@@ -1,0 +1,764 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage your browser extensions easily.">
+
+    <title>Frontend Mentor | Browser Extensions Manager</title>
+
+    <link rel="icon" type="image/png" sizes="32x32"
+        href="./assets/images/favicon-32x32.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --font-sans: "Noto Sans", sans-serif;
+            --color-red: hsl(3, 86%, 64%);
+        }
+    </style>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Noto Sans", sans-serif;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* DARK MODE */
+
+        body.dark-mode {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .dark-mode .header,
+        .dark-mode .extension-card {
+            background: #181818;
+            border-color: #333333;
+            color: #ffffff;
+        }
+
+        .dark-mode .extension-description {
+            color: #b5b5b5;
+        }
+
+        .dark-mode .filter-btn:not(.selected) {
+            background: #181818;
+            border-color: #444444;
+            color: white;
+        }
+
+        .dark-mode .remove-btn {
+            color: white;
+            border-color: #555555;
+        }
+
+        .dark-mode .theme-button {
+            background: #292929;
+            color: white;
+        }
+
+        .dark-mode .theme-button:hover {
+            background: #404040;
+        }
+
+        /* LIGHT MODE */
+
+        body:not(.dark-mode) {
+            background: #f0f4f8;
+            color: #091540;
+        }
+
+        .theme-button {
+            transition: all 0.3s ease;
+        }
+
+        .extension-card {
+            transition: all 0.25s ease;
+        }
+
+        .extension-card:hover {
+            transform: translateY(-3px);
+        }
+
+        /* TOGGLE SWITCH */
+
+        .toggle-btn {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            border-radius: 30px;
+            transition: background-color 0.25s ease;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .toggle-btn span {
+            position: absolute;
+            top: 4px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            transition: left 0.25s ease;
+        }
+
+        .toggle-btn.active {
+            background: #f45b55;
+        }
+
+        .toggle-btn.active span {
+            left: 26px;
+        }
+
+        .toggle-btn:not(.active) {
+            background: #777777;
+        }
+
+        .toggle-btn:not(.active) span {
+            left: 4px;
+        }
+
+        /* FILTER BUTTONS */
+
+        .filter-btn.selected {
+            background: #f45b55;
+            color: white;
+            border-color: #f45b55;
+        }
+
+        .filter-btn {
+            cursor: pointer;
+        }
+
+        .remove-btn {
+            cursor: pointer;
+        }
+
+        button:focus-visible {
+            outline: 3px solid #f45b55;
+            outline-offset: 3px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
+
+            .extension-card:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="dark-mode min-h-screen font-sans">
+
+    <main class="mx-auto min-h-screen max-w-[1440px] px-5 py-8 sm:px-8 lg:px-12">
+
+        <!-- HEADER -->
+
+        <header class="header mb-10 flex items-center justify-between rounded-2xl border border-slate-700 bg-white p-5 shadow-sm">
+
+            <a href="#" aria-label="Home">
+                <img
+                    src="./assets/images/logo.svg"
+                    alt="Browser Extensions"
+                    class="h-14 w-auto sm:h-16"
+                >
+            </a>
+
+            <button
+                id="theme-toggle"
+                type="button"
+                aria-label="Switch to light mode"
+                class="theme-button grid size-14 place-items-center rounded-xl bg-slate-100 text-3xl transition hover:bg-slate-200"
+            >
+                <span id="theme-icon">☀️</span>
+            </button>
+
+        </header>
+
+
+        <!-- EXTENSIONS SECTION -->
+
+        <section aria-labelledby="page-title">
+
+            <div class="mb-8 flex flex-col items-center justify-between gap-5 sm:flex-row">
+
+                <h1 id="page-title" class="text-3xl font-bold tracking-tight sm:text-4xl">
+                    Extensions List
+                </h1>
+
+                <nav class="flex gap-3" aria-label="Filter extensions">
+
+                    <button
+                        type="button"
+                        data-filter="all"
+                        aria-pressed="true"
+                        class="filter-btn selected rounded-full border border-slate-300 px-6 py-2 text-base font-medium transition sm:text-lg"
+                    >
+                        All
+                    </button>
+
+                    <button
+                        type="button"
+                        data-filter="active"
+                        aria-pressed="false"
+                        class="filter-btn rounded-full border border-slate-300 px-6 py-2 text-base font-medium transition sm:text-lg"
+                    >
+                        Active
+                    </button>
+
+                    <button
+                        type="button"
+                        data-filter="inactive"
+                        aria-pressed="false"
+                        class="filter-btn rounded-full border border-slate-300 px-6 py-2 text-base font-medium transition sm:text-lg"
+                    >
+                        Inactive
+                    </button>
+
+                </nav>
+
+            </div>
+
+
+            <!-- EXTENSIONS GRID -->
+
+            <div
+                id="extensions-list"
+                class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            >
+
+                <!-- DevLens -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="true">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-devlens.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">DevLens</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Quickly inspect page layouts and visualize element boundaries.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn active" role="switch" aria-checked="true" aria-label="Toggle DevLens">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- StyleSpy -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="true">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-style-spy.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">StyleSpy</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Instantly analyze and copy CSS from any webpage element.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn active" role="switch" aria-checked="true" aria-label="Toggle StyleSpy">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- SpeedBoost -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="false">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-speed-boost.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">SpeedBoost</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Optimizes browser resource usage to accelerate page loading.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn" role="switch" aria-checked="false" aria-label="Toggle SpeedBoost">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- JSONWizard -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="true">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-json-wizard.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">JSONWizard</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Formats, validates, and prettifies JSON responses in-browser.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn active" role="switch" aria-checked="true" aria-label="Toggle JSONWizard">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- TabMaster Pro -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="false">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-tab-master-pro.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">TabMaster Pro</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Organizes browser tabs into groups and sessions.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn" role="switch" aria-checked="false" aria-label="Toggle TabMaster Pro">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- ViewportBuddy -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="true">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-viewport-buddy.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">ViewportBuddy</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Simulates various screen resolutions directly within the browser.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn active" role="switch" aria-checked="true" aria-label="Toggle ViewportBuddy">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- Markup Notes -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="false">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-markup-notes.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">Markup Notes</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Enables annotation and notes directly onto webpages for collaborative debugging.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn" role="switch" aria-checked="false" aria-label="Toggle Markup Notes">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- GridGuides -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="true">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-grid-guides.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">GridGuides</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Overlay customizable grids and alignment guides on any webpage.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn active" role="switch" aria-checked="true" aria-label="Toggle GridGuides">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- Palette Picker -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="false">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-palette-picker.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">Palette Picker</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Instantly extracts color palettes from any webpage.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn" role="switch" aria-checked="false" aria-label="Toggle Palette Picker">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- LinkChecker -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="true">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-link-checker.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">LinkChecker</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Scans and highlights broken links on any page.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn active" role="switch" aria-checked="true" aria-label="Toggle LinkChecker">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- DOM Snapshot -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="false">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-dom-snapshot.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">DOM Snapshot</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Capture and export DOM structures quickly.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn" role="switch" aria-checked="false" aria-label="Toggle DOM Snapshot">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+
+                <!-- ConsolePlus -->
+                <article class="extension-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" data-active="true">
+
+                    <div class="flex items-start gap-5">
+                        <img src="./assets/images/logo-console-plus.svg" alt="" class="size-[60px] shrink-0">
+
+                        <div>
+                            <h2 class="text-xl font-bold">ConsolePlus</h2>
+                            <p class="extension-description mt-2 text-base leading-relaxed text-slate-500">
+                                Enhanced developer console with advanced filtering and logging.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center justify-between">
+                        <button class="remove-btn rounded-full border border-slate-300 px-5 py-2 text-base font-medium transition hover:border-red-500 hover:bg-red-500 hover:text-white">
+                            Remove
+                        </button>
+
+                        <button type="button" class="toggle-btn active" role="switch" aria-checked="true" aria-label="Toggle ConsolePlus">
+                            <span></span>
+                        </button>
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- FOOTER -->
+
+        <footer class="mt-12 pb-6 text-center text-xs opacity-70">
+
+            Challenge by
+            <a href="https://www.frontendmentor.io?ref=challenge"
+                target="_blank" rel="noopener" class="underline">
+                Frontend Mentor
+            </a>.
+
+            Coded by
+            <a href="https://github.com/sitrannm"
+                target="_blank" rel="noopener" class="underline">
+                Sitra
+            </a>.
+
+        </footer>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        // ELEMENTS
+
+        const themeToggle = document.getElementById("theme-toggle");
+        const themeIcon = document.getElementById("theme-icon");
+
+        const filterButtons = document.querySelectorAll(".filter-btn");
+
+        const extensionList = document.getElementById("extensions-list");
+
+
+        // DARK / LIGHT MODE
+
+        function setTheme(theme) {
+
+            const isDark = theme === "dark";
+
+            document.body.classList.toggle("dark-mode", isDark);
+
+            themeIcon.textContent = isDark ? "☀️" : "🌙";
+
+            themeToggle.setAttribute(
+                "aria-label",
+                isDark ? "Switch to light mode" : "Switch to dark mode"
+            );
+
+            try {
+                localStorage.setItem("theme", theme);
+            } catch (error) {
+                console.log("Theme preference could not be saved.");
+            }
+
+        }
+
+
+        // LOAD SAVED THEME
+
+        let savedTheme = "dark";
+
+        try {
+            savedTheme = localStorage.getItem("theme") || "dark";
+        } catch (error) {
+            savedTheme = "dark";
+        }
+
+        setTheme(savedTheme);
+
+
+        // THEME BUTTON CLICK
+
+        themeToggle.addEventListener("click", () => {
+
+            const currentTheme = document.body.classList.contains("dark-mode")
+                ? "dark"
+                : "light";
+
+            setTheme(currentTheme === "dark" ? "light" : "dark");
+
+        });
+
+
+        // FILTER FUNCTIONALITY
+
+        function applyFilter(filter) {
+
+            document.querySelectorAll(".extension-card").forEach(card => {
+
+                const isActive = card.dataset.active === "true";
+
+                if (filter === "all") {
+                    card.classList.remove("hidden");
+                }
+
+                else if (filter === "active") {
+                    card.classList.toggle("hidden", !isActive);
+                }
+
+                else if (filter === "inactive") {
+                    card.classList.toggle("hidden", isActive);
+                }
+
+            });
+
+        }
+
+
+        // FILTER BUTTON EVENTS
+
+        filterButtons.forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                const filter = button.dataset.filter;
+
+                filterButtons.forEach(btn => {
+
+                    btn.classList.remove("selected");
+
+                    btn.setAttribute("aria-pressed", "false");
+
+                });
+
+                button.classList.add("selected");
+
+                button.setAttribute("aria-pressed", "true");
+
+                applyFilter(filter);
+
+            });
+
+        });
+
+
+        // TOGGLE AND REMOVE FUNCTIONALITY
+
+        extensionList.addEventListener("click", event => {
+
+            const toggle = event.target.closest(".toggle-btn");
+
+            const removeButton = event.target.closest(".remove-btn");
+
+
+            // TOGGLE EXTENSION
+
+            if (toggle) {
+
+                const card = toggle.closest(".extension-card");
+
+                const newState = card.dataset.active !== "true";
+
+                card.dataset.active = String(newState);
+
+                toggle.classList.toggle("active", newState);
+
+                toggle.setAttribute("aria-checked", String(newState));
+
+
+                const selectedFilter = document.querySelector(
+                    ".filter-btn.selected"
+                ).dataset.filter;
+
+                applyFilter(selectedFilter);
+
+                return;
+
+            }
+
+
+            // REMOVE EXTENSION
+
+            if (removeButton) {
+
+                const card = removeButton.closest(".extension-card");
+
+                card.remove();
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>
+```
